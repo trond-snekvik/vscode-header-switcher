@@ -1,0 +1,56 @@
+{
+	"name": "header-switcher",
+	"displayName": "header-switcher",
+	"description": "Switch between header and source files in C",
+	"version": "0.0.1",
+	"engines": {
+		"vscode": "^1.34.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"activationEvents": [
+		"onCommand:header-switcher.switch"
+	],
+	"main": "./out/extension.js",
+	"contributes": {
+		"commands": [
+			{
+				"command": "header-switcher.switch",
+				"title": "Switch header/source file"
+			}
+		],
+		"configuration": [
+			{
+				"title": "header-switcher",
+				"properties": {
+					"header-switcher.folder_pairs": {
+						"type":"array",
+						"items": {
+							"type":"array",
+							"items": {
+								"type":"string"
+							}
+						}
+					}
+				}
+			}
+		]
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./",
+		"watch": "tsc -watch -p ./",
+		"postinstall": "node ./node_modules/vscode/bin/install",
+		"test": "npm run compile && node ./node_modules/vscode/bin/test"
+	},
+	"devDependencies": {
+		"@types/glob": "^7.1.1",
+		"@types/mocha": "^2.2.42",
+		"@types/node": "^10.12.21",
+		"tslint": "^5.12.1",
+		"typescript": "^3.3.1",
+		"vscode": "^1.1.28",
+		"fast-glob": "2.2.7"
+	}
+}
