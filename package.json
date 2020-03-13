@@ -3,12 +3,19 @@
 	"displayName": "header-switcher",
 	"description": "Switch between header and source files in C",
 	"version": "0.0.1",
+	"publisher": "trond-snekvik",
 	"engines": {
-		"vscode": "^1.34.0"
+		"vscode": "^1.22.0"
 	},
+	"license": "MIT",
 	"categories": [
 		"Other"
 	],
+	"author": {
+		"name": "Trond Einar Snekvik",
+		"email": "trond.snekvik@gmail.com",
+		"url": "http://www.github.com/trond-snekvik"
+	},
 	"activationEvents": [
 		"onCommand:header-switcher.switch"
 	],

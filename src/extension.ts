@@ -5,7 +5,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as glob from 'fast-glob';
 import { EntryItem } from 'fast-glob/out/types/entries';
-import { resolve } from 'url';
 
 
 const header_extensions : string[] = ['h', 'hpp', 'hh', 'hxx'];
@@ -45,6 +44,27 @@ function recursive_glob(original: string, pattern: string, basedir: string, topD
 }
 
 function resolvePath(p: string) {
+
+	p.replace(/${workspaceFolder(?::([^}]+))?}/, (str, g1) => {
+		var folders = vscode.workspace.workspaceFolders;
+		if (!folders) {
+			return str;
+		}
+		if (!g1) {
+			return folders[0].uri.fsPath;
+		}
+		var folder = folders.find(f => f.name === g1);
+		if (!folder) {
+			return str;
+		}
+
+		return folder.uri.fsPath;
+	});
+
+	if (path.isAbsolute(p)) {
+		return p;
+	}
+
 	return path.resolve(vscode.workspace.workspaceFolders![0].uri.fsPath, p);
 }
 
@@ -62,8 +82,29 @@ function find_replacements(folder: string, pairs: string[][]): {prev: string, ne
 	}, []).map(pair => { return { prev: pair[0], new: pair[1] }; });
 }
 
-var configPairs = (get_config('folder_pairs') as string[][]).map(p => p.map(resolvePath));
+var configPairs: string[][] = [];
 var livePairs: string[][] = [];
+
+function updateConfigPairs() {
+	configPairs = [];
+	var workspaces = vscode.workspace.workspaceFolders;
+	if (!workspaces) {
+		configPairs = (get_config('folder_pairs') as string[][]).map(p => p.map(resolvePath));
+		return;
+	}
+
+	(get_config('folder_pairs') as string[][]).forEach(pair => {
+		if (pair.every(path.isAbsolute)) {
+			configPairs.push(pair);
+			return;
+		}
+
+
+		workspaces!.forEach(workspace => {
+			configPairs.push(pair.map(folder => path.isAbsolute(folder) ? folder : path.join(workspace.uri.fsPath, folder)));
+		});
+	});
+}
 
 function getPairs() {
 	return configPairs.concat(livePairs);
@@ -136,13 +177,13 @@ function handle_switch() {
 }
 
 export function activate(context: vscode.ExtensionContext) {
-
+	updateConfigPairs();
 	let disposable = vscode.commands.registerCommand('header-switcher.switch', handle_switch);
 	context.subscriptions.push(disposable);
 
 	disposable = vscode.workspace.onDidChangeConfiguration(e => {
 		if (e.affectsConfiguration('header-switcher')) {
-			configPairs = (get_config('folder_pairs') as string[][]).map(p => p.map(resolvePath));
+			updateConfigPairs();
 		}
 	});
 	context.subscriptions.push(disposable);
